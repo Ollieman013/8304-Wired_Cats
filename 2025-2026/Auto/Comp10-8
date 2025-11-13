@@ -1,0 +1,178 @@
+package org.firstinspires.ftc.teamcode25;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+@Autonomous(name = "Auto")
+public class Auto extends LinearOpMode {
+   DcMotor LF, LR, RF, RR;
+   CRServo cont1;
+   CRServo cont2;
+   CRServo cont3;
+   Servo color1;
+   Servo color2;
+
+
+   DcMotor spin;
+   DcMotor twin;
+   CRServo turn;
+   CRServo burn;
+   CRServo lurn;
+
+   DcMotor Up;
+   DcMotor Bup;
+
+   private ElapsedTime runtime = new ElapsedTime();
+
+   // Calculate the COUNTS_PER_INCH for your specific drive train.
+   // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
+   // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
+   // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
+   // This is gearing DOWN for less speed and more torque.
+   // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
+   static final double COUNTS_PER_MOTOR_REV = 288 ; // eg: TETRIX Motor Encoder
+   static final double DRIVE_GEAR_REDUCTION = 1.0 ; // No External Gearing.
+   static final double WHEEL_DIAMETER_INCHES = 4.0 ; // For figuring circumference
+   static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+           (WHEEL_DIAMETER_INCHES * 3.1415);
+   static final double DRIVE_SPEED = 0.8;
+   static final double TURN_SPEED = 0.07;
+
+   public void runOpMode(){
+
+       LF = hardwareMap.get(DcMotor.class, "LF");
+       RF = hardwareMap.get(DcMotor.class, "RF");
+       RR = hardwareMap.get(DcMotor.class, "RR");
+       LR = hardwareMap.get(DcMotor.class, "LR");
+
+       cont1 = hardwareMap.get(CRServo.class, "cont1");
+       cont2 = hardwareMap.get(CRServo. class, "cont2");
+       cont3 = hardwareMap.get(CRServo.class, "cont3");
+
+       turn = hardwareMap.get(CRServo.class, "turn");
+       burn = hardwareMap.get(CRServo.class, "burn");
+       lurn = hardwareMap.get(CRServo.class, "lurn");
+
+       spin = hardwareMap.get(DcMotor.class, "spin");
+       twin = hardwareMap.get(DcMotor.class, "twin");
+
+       // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
+       // Note: The settings here assume direct drive on left and right wheels. Gear Reduction or 90 Deg drives may require direction flips
+       LR.setDirection(DcMotor.Direction.REVERSE);
+       RF.setDirection(DcMotor.Direction.FORWARD);
+       LF.setDirection(DcMotor.Direction.REVERSE);
+       RR.setDirection(DcMotor.Direction.FORWARD);
+
+       LR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       RR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+       LR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       RF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       RR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       LF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+       waitForStart();
+
+       while (opModeIsActive()){
+   cont1.setPower(1);
+   cont2.setPower(1);
+   cont3.setPower(1);
+
+   //Drive Forward
+   encoderDrive(DRIVE_SPEED, 24, 24, 0.5);
+
+           cont1.setPower(0);
+           cont2.setPower(0);
+           cont3.setPower(0);
+
+   //Turn 180 degrees, move forward, turn 180
+   encoderDrive(TURN_SPEED, 24, -24, 0.6);
+   encoderDrive(DRIVE_SPEED, 24, 24, 1);
+  
+
+   spin.setPower(1);
+   twin.setPower(1);
+   turn.setPower(1);
+   burn.setPower(1);
+   lurn.setPower(1);
+   sleep(4000);
+
+   spin.setPower(0);
+   twin.setPower(0);
+   turn.setPower(0);
+   burn.setPower(0);
+   lurn.setPower(0);
+
+   encoderDrive(TURN_SPEED, 24, -24, 0.75);
+   encoderDrive(DRIVE_SPEED, 24, 24, 1);
+       }
+
+
+       }
+   public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS) {
+       int newLeftTarget;
+       int newRightTarget;
+
+       // Determine new target position
+       newLeftTarget = LF.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
+       newRightTarget = RF.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
+
+       LF.setTargetPosition(newLeftTarget);
+       LR.setTargetPosition(newLeftTarget);
+       RF.setTargetPosition(newRightTarget);
+       RR.setTargetPosition(newRightTarget);
+
+       LF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+       LR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+       RF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+       RR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+       runtime.reset();
+       LF.setPower(Math.abs(speed));
+       LR.setPower(Math.abs(speed));
+       RF.setPower(Math.abs(speed));
+       RR.setPower(Math.abs(speed));
+
+       // Keep looping while motors are active and timeout not reached
+       while (opModeIsActive() &&
+               (runtime.seconds() < timeoutS) &&
+               (LF.isBusy() && RF.isBusy())) {
+
+           telemetry.addData("Path", "Running to %7d :%7d", newLeftTarget, newRightTarget);
+           telemetry.addData("Path", "Current %7d :%7d", LF.getCurrentPosition(), RF.getCurrentPosition());
+           telemetry.update();
+       }
+
+       // Stop all motion
+       LF.setPower(0);
+       LR.setPower(0);
+       RF.setPower(0);
+       RR.setPower(0);
+
+       // Set motors back to run using encoders
+       LF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       LR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       RF.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       RR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+       sleep(250);
+   }
+}
+
+
+
+
+
+
+
+
