@@ -1,0 +1,235 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+
+
+@TeleOp(name = "OneWeekRobot" )
+public class OneWeekRobot extends OpMode {
+   DcMotor LF;
+   DcMotor RF;
+   DcMotor RR;
+   DcMotor LR;
+
+
+   CRServo cont1;
+   CRServo cont2;
+   CRServo cont3;
+   Servo color1;
+   Servo color2;
+
+
+   DcMotor spin;
+   DcMotor twin;
+   CRServo turn;
+   CRServo burn;
+   CRServo lurn;
+
+   DcMotor Up;
+   DcMotor Bup;
+
+
+   ColorSensor colorSensor;
+   double side;
+   double y1;
+   double x1;
+   double y2;
+   double x2;
+
+
+   private boolean contUp = false;
+   private boolean lastBstate = false;
+   private boolean currentBstate = false;
+
+
+   private boolean lastXstate = false;
+   private boolean xUp = false;
+   private boolean currentXstate = false;
+   private boolean lastYstate = false;
+   private boolean yUp = false;
+   private boolean currentYstate = false;
+   private boolean currentAstate = false;
+   private boolean aUp = false;
+   private boolean lastAstate = false;
+   private boolean lastupstate = false;
+   private boolean up = false;
+   private boolean lastdownstate = false;
+   private boolean down = false;
+
+
+   @Override
+   public void init() {
+       LF = hardwareMap.get(DcMotor.class, "LF");
+       RF = hardwareMap.get(DcMotor.class, "RF");
+       RR = hardwareMap.get(DcMotor.class, "RR");
+       LR = hardwareMap.get(DcMotor.class, "LR");
+
+
+       cont1 = hardwareMap.get(CRServo.class, "cont1");
+       cont2 = hardwareMap.get(CRServo.class, "cont2");
+       cont3 = hardwareMap.get(CRServo.class, "cont3");
+
+
+       color1 = hardwareMap.get(Servo.class, "color1");
+       color2 = hardwareMap.get(Servo.class, "color2");
+
+
+       colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+
+
+       turn = hardwareMap.get(CRServo.class, "turn");
+       burn = hardwareMap.get(CRServo.class, "burn");
+       lurn = hardwareMap.get(CRServo.class, "lurn");
+       spin = hardwareMap.get(DcMotor.class, "spin");
+       twin = hardwareMap.get(DcMotor.class, "twin");
+
+       Up = hardwareMap.get(DcMotor.class, "Up");
+       Bup = hardwareMap.get(DcMotor.class, "Bup");
+   }
+   @Override
+   public void loop(){
+       side = gamepad1.right_stick_x;
+
+
+
+
+       if (Math.abs(side) > 0.05) {
+           //strafing
+           if (gamepad1.left_bumper) {
+               LF.setPower(side * -0.2);
+               LR.setPower(side * 0.2);
+               RF.setPower(side * -0.2);
+               RR.setPower(side * 0.2);
+           } else {
+               LF.setPower(side * -0.8);
+               LR.setPower(side * 0.8);
+               RF.setPower(side * -0.8);
+               RR.setPower(side * 0.8);
+           }
+       } else {
+           //moving forward/backward and left/right
+           y1 = -gamepad1.left_stick_y;
+           x1 = gamepad1.left_stick_x;
+           y2 = x1 * 0.85 + y1;
+           x2 = y1 - x1 * 0.85;
+
+
+           if (gamepad1.left_bumper) {
+               LF.setPower(y2 * -0.2);
+               LR.setPower(y2 * -0.2);
+               RF.setPower(x2 * 0.2);
+               RR.setPower(x2 * 0.2);
+           } else {
+               LF.setPower(y2 * -0.8);
+               LR.setPower(y2 * -0.8);
+               RF.setPower(x2 * 0.8);
+               RR.setPower(x2 * 0.8);
+           }
+
+
+       }
+
+       int red = colorSensor.red();
+       int blue = colorSensor.blue();
+       int green = colorSensor.green();
+       int alpha = colorSensor.alpha();
+
+
+       telemetry.addData("Red", red);
+       telemetry.addData("Green", green);
+       telemetry.addData("Blue", blue);
+       telemetry.update();
+
+
+       if(green > red && green > blue){
+           color1.setPosition(1);
+           color2.setPosition(1);
+       }
+       if(gamepad1.a){
+           color1.setPosition(0);
+           color2.setPosition(0);
+       }
+
+
+
+       // --- Toggle continuous rotation servos with button B ---
+       if (gamepad1.b && !lastBstate) {
+           contUp = !contUp;  // flip toggle
+
+           if (contUp) {
+               cont1.setPower(-1.0);   // spin forward
+               cont2.setPower(1.0);
+               cont3.setPower(-1.0);
+           } else {
+               cont1.setPower(0.0);   // stop spinning
+               cont2.setPower(0.0);
+               cont3.setPower(0.0);
+           }
+       }
+
+       lastBstate = gamepad1.b;  // update state
+
+//2 continous motors
+       if(gamepad1.x && !lastXstate){
+           xUp = !xUp;
+           if(xUp){
+               spin.setPower(-1);
+               twin.setPower(1);
+           } else{
+               spin.setPower(0);
+               twin.setPower(0);
+           }
+       }
+       lastXstate = gamepad1.x;
+       // Servos Between 0 and 90 degrees
+       if(gamepad1.y && !lastYstate){
+           yUp = !yUp;
+           if(yUp){
+               burn.setPower(-1);
+               turn.setPower(1);
+           } else{
+               burn.setPower(0);
+               turn.setPower(0);
+           }
+
+       } lastYstate = gamepad1.y;
+       if(gamepad1.a && !lastAstate){
+           aUp = !aUp;
+           if(aUp){
+               lurn.setPower(-1);
+           } else{
+               lurn.setPower(0);
+           }
+
+       }
+       lastAstate = gamepad1.a;
+       if(gamepad1.dpad_up && !lastupstate){
+           up = !up;
+           Up.setPower(up ? 1 : 0);
+           Bup.setPower(up ? 1 : 0);
+       }
+       lastupstate = gamepad1.dpad_up;
+
+       if(gamepad1.dpad_down && !lastdownstate){
+           down = !down;
+           Up.setPower(up ? 1 : 0);
+           Bup.setPower(up ? 1 : 0);
+       }
+       lastdownstate = gamepad1.dpad_down;
+   }
+}
+
+
+
+
+
+
+
+
+
