@@ -1,0 +1,30 @@
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name = "UpDawg", group = "UpDawg")
+public class UpDawg extends LinearOpMode {
+    DcMotor Lift;
+@Override
+public void init(){
+    Lift = hardwareMap.get(DcMotor.class, "Lift");
+}
+public void loop(){
+    if(gamepad1.right_stick_y > 0.3) {
+                robot.Lift.setPower(0.8);
+            }
+            else if(gamepad1.right_stick_y<=-0.3)
+            {
+                robot.Lift.setPower(-1);
+            }
+            else
+            {
+                robot.Lift.setPower(-0.1);
+            }
+}
+}
+
+
+
+
