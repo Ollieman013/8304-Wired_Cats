@@ -1,0 +1,145 @@
+package org.firstinspires.ftc.teamcode25;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+
+@TeleOp(name = "TestingColorDistance")
+
+public class TestingColorDistance extends OpMode {
+    DcMotor LF;
+    DcMotor RF;
+    DcMotor RR;
+    DcMotor LR;
+    double side;
+    double y1;
+    double x1;
+    double y2;
+    double x2;
+    
+    ColorSensor colorSensor;
+    DistanceSensor distanceSensor;
+    
+    boolean motorOn = false; 
+    boolean lastButtonState = false;
+    
+@Override 
+public void init(){
+  LF = hardwareMap.get(DcMotor.class, "LF");
+  RF = hardwareMap.get(DcMotor.class, "RF");
+  RR = hardwareMap.get(DcMotor.class, "RR");
+  LR = hardwareMap.get(DcMotor.class, "LR");
+
+    colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+    distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+}
+@Override
+public void loop(){
+   //Testing Color sensor & Distance sensor
+ int red = colorSensor.red();
+ int green = colorSensor.green();
+ int blue = colorSensor.blue();
+ //overall brightness
+ int alpha = colorSensor.alpha();
+ 
+ double distanceCM = distanceSensor.getDistance(DistanceUnit.CM);
+ 
+  // Send values to Driver Station
+    telemetry.addData("Red", red);
+    telemetry.addData("Green", green);
+    telemetry.addData("Blue", blue);
+    
+     telemetry.addData("Distance (cm)", distanceCM);
+    telemetry.update();
+    
+    if(red > blue && red > green){
+    LF.setPower(1);
+    RF.setPower(1);
+    RR.setPower(1);
+    LR.setPower(1);
+       telemetry.addLine("Red-- Moving Forward");
+    }
+    else if (blue > red && blue > green){
+        telemetry.addLine("Blue");
+    }
+    else if( green > red && green > blue){
+        telemetry.addLine("Green");
+    }
+  if(distanceCM > 10){
+    LF.setPower(1);
+    RF.setPower(1);
+    RR.setPower(1);
+    LR.setPower(1);
+    telemetry.addLine("Driving forward...");
+   }
+   else{
+    LF.setPower(0);
+    RF.setPower(0);
+    RR.setPower(0);
+    LR.setPower(0); 
+    telemetry.addLine("Stopped, Too Close!!");
+   }
+   
+   
+            
+    side = gamepad1.right_stick_x;
+    if (Math.abs(side) > 0.05) {
+            //strafing
+            if (gamepad1.left_bumper) {
+                LF.setPower(side * -0.2);
+                LR.setPower(side * -0.2);
+                RF.setPower(side * 0.2);
+                RR.setPower(side * -0.2);
+            } else {
+                LF.setPower( -0.8);
+                LR.setPower( -0.8);
+                RF.setPower( 0.8);
+                RR.setPower( -0.8);
+            }
+        } else {
+            //moving forward/backward and left/right
+            y1 = -gamepad1.left_stick_y;
+            x1 = gamepad1.left_stick_x;
+            y2 = x1 * 0.85 + y1;
+            x2 = y1 - x1 * 0.85;
+
+            if(gamepad1.left_bumper) {
+                LF.setPower(-y2 * 0.2);
+                LR.setPower(-y2 * 0.2);
+                RF.setPower(x2 * 0.2);
+                RR.setPower(x2 * 0.2);
+            } else {
+                LF.setPower(-y2 * 0.8);
+                LR.setPower(-y2 * 0.8);
+                RF.setPower(x2 * 0.8);
+                RR.setPower(x2 * 0.8);
+            }
+            boolean buttonPressed = gamepad1.a;
+             if (buttonPressed && !lastButtonState) {
+                motorOn = !motorOn; 
+            }
+            if(motorOn){
+                LF.setPower(-0.8);
+                LR.setPower(-0.8);
+                RF.setPower(0.8);
+                RR.setPower(-0.8);
+            }
+            else{
+                LF.setPower(0);
+                LR.setPower(0);
+                RF.setPower(0);
+                RR.setPower(0);
+            }
+        }
+}
+
+}
+
+
+
+
+
