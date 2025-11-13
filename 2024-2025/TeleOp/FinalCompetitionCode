@@ -1,0 +1,265 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+@TeleOp(name="Mecanum: TeleOp", group="Mecanum")
+public class MecanumTeleOp extends LinearOpMode {
+
+    /* Declare OpMode members. */
+    HardwareMecanum robot           = new HardwareMecanum();   // Use a Mecanum's hardware
+
+    @Override
+    public void runOpMode() {
+
+        /* Initialize the hardware variables.
+         * The init() method of the hardware class does all the work here
+         */
+        robot.init(hardwareMap);
+
+        // Send telemetry message to signify robot waiting;
+        telemetry.addData("Say", "Hello Driver");    //
+        telemetry.update();
+
+        // Wait for the game to start (driver presses PLAY)
+        waitForStart();
+        double TwistStatus=0;
+        double GripStatus=0;
+        double GrabStatus=0;
+        double RotateSpd=0.08;
+        double RotatePos=1;
+        double ExtLPos=1;
+        double ExtRPos=0;
+        double ExtMoveSpd=0.1;
+        boolean previousXandB = false;
+        boolean sequenceRunning = false;
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
+            double x1;  //left-right
+            double y1;  //forward-reverse
+
+            double FortyFiveInRads = -Math.PI/4;
+            double Cosine45 = Math.cos(FortyFiveInRads);
+            double Sine45 = Math.sin(FortyFiveInRads);
+            double x2;
+            double y2;
+            double side;
+
+            side = gamepad1.right_stick_x;  //for controlling the spin
+
+
+            if (gamepad2.a)
+            {
+                RotatePos += RotateSpd; //rotate back at 1
+                sleep(25);
+            }
+            else if(gamepad2.y)
+            {
+                RotatePos -= RotateSpd; //rotate back at 1
+                sleep(25);
+            }
+            robot.Rotate.setPosition(RotatePos);
+            if(gamepad2.left_stick_y>=0.1)
+            {
+                robot.Lift.setPower(0.8);
+            }
+            else if(gamepad2.left_stick_y<=-0.1)
+            {
+                robot.Lift.setPower(-1);
+            }
+            else
+            {
+                robot.Lift.setPower(-0.1);
+            }
+            if(gamepad2.right_bumper && GripStatus==1)
+            {
+                GripStatus=0;
+                sleep(150);
+            }
+            else if(gamepad2.right_bumper && GripStatus==0)
+            {
+                GripStatus=1;
+                sleep(150);
+            }
+            if(GripStatus==0)
+            {
+                robot.Grip.setPosition(0.54);//close
+            }
+            if(GripStatus==1)
+            {
+                robot.Grip.setPosition(0.25);//open
+            }
+            if(gamepad2.dpad_down && TwistStatus==1)
+            {
+                TwistStatus=0;
+                sleep(150);
+            }
+            else if(gamepad2.dpad_up && TwistStatus==0)
+            {
+                TwistStatus=1;
+                sleep(150);
+            }
+            if(TwistStatus==0)
+            {
+                robot.Twist.setPosition(0.99);//back
+            }
+            if(TwistStatus==1)
+            {
+                robot.Twist.setPosition(0.32);//front
+            }
+            if (gamepad2.right_stick_y>=0.1)
+            {
+                if (ExtLPos<1&& ExtRPos>0) {
+                    if(robot.Twist.getPosition()==0.32)
+                    {
+                        if (robot.ExtL.getPosition()<0.86 && robot.ExtR.getPosition()>0.14)
+                        {
+                            ExtLPos += ExtMoveSpd;
+                            ExtRPos -= ExtMoveSpd;
+                            sleep(50);
+                        }
+                        if (robot.ExtL.getPosition()>0.86)
+                        {
+                            robot.ExtL.setPosition(0.86);
+                            ExtLPos=0.86;
+                        }
+                        if (robot.ExtR.getPosition()<0.14)
+                        {
+                            robot.ExtR.setPosition(0.14);
+                            ExtRPos=0.14;
+                        }
+
+                    }
+                    else
+                    {
+                        ExtLPos += ExtMoveSpd;
+                        ExtRPos -= ExtMoveSpd;
+                        sleep(50);
+                    }
+
+                }
+            }
+            else if(gamepad2.right_stick_y<=-0.1)
+            {
+                if(ExtLPos>0.6 && ExtRPos<0.4) {
+                    ExtLPos -= ExtMoveSpd; // position 1 is close back, towards 0 is open out
+                    ExtRPos += ExtMoveSpd; // Opposite as above
+                    sleep(50);
+                }
+            }
+            robot.ExtL.setPosition(ExtLPos);
+            robot.ExtR.setPosition(ExtRPos);
+
+            if(gamepad2.left_bumper && GrabStatus==1)
+            {
+                GrabStatus=0;
+                sleep(150);
+            }
+            else if(gamepad2.left_bumper && GrabStatus==0)
+            {
+                GrabStatus=1;
+                sleep(150);
+            }
+            if(GrabStatus==0)
+            {
+                robot.Grab.setPosition(0.8);//open
+            }
+            if(GrabStatus==1)
+            {
+                robot.Grab.setPosition(0.67);//close
+            }
+
+            boolean currentXandB = gamepad2.x && gamepad2.b;
+
+            if (currentXandB && !previousXandB && !sequenceRunning) {
+                sequenceRunning = true;
+                if(robot.Twist.getPosition()==0.99) {
+
+                    robot.Lift.setPower(-0.8);
+                    sleep(100);
+                    robot.Lift.setPower(-0.08);
+                    robot.Twist.setPosition(0.32);
+                    TwistStatus = 1;
+                    sleep(500);
+                    robot.Lift.setPower(0.7);
+                    sleep(100);
+                }
+                robot.Grab.setPosition(0.8);
+                GrabStatus=0;
+                robot.ExtL.setPosition(0.86);
+                robot.ExtR.setPosition(0.14);
+                ExtLPos=0.84;
+                ExtRPos=0.16;
+                sleep(500);
+                robot.Grip.setPosition(0.25);
+                GripStatus=1;
+                sleep(150);
+                robot.Grab.setPosition(0.67);
+                GrabStatus=1;
+
+                sequenceRunning = false;
+            }
+
+            previousXandB = currentXandB;
+
+            if (Math.abs(side) > 0.05) {
+                if(gamepad1.left_bumper)
+                {
+                    robot.RightRear.setPower(side*0.2);
+                    robot.RightFront.setPower(-side*0.2);
+
+                    robot.LeftFront.setPower(side*0.2);
+                    robot.LeftRear.setPower(-side*0.2);
+                }
+                else
+                {
+                    robot.RightRear.setPower(side*0.9);
+                    robot.RightFront.setPower(-side*0.9);
+
+                    robot.LeftFront.setPower(side*0.9);
+                    robot.LeftRear.setPower(side*-0.9);
+                }
+
+            }
+            else {
+                y1 =  -gamepad1.left_stick_y;
+                x1 =  gamepad1.left_stick_x;
+
+                //Need to rotate 45 degrees
+                y2 = x1*0.85+y1;
+                x2 = y1-x1*0.85;
+
+                // Output the safe vales to the motor drives.
+                if(gamepad1.left_bumper)
+                {
+                    robot.LeftFront.setPower(y2*0.2);
+                    robot.LeftRear.setPower(y2*0.2);
+                    robot.RightRear.setPower(x2*0.2);
+                    robot.RightFront.setPower(x2*0.2);
+                }
+                else
+                {
+                    robot.LeftFront.setPower(y2*0.9);
+                    robot.LeftRear.setPower(y2*0.9);
+                    robot.RightRear.setPower(x2*0.9);
+                    robot.RightFront.setPower(x2*0.9);
+                }
+
+            }
+
+            // Send telemetry message to signify robot running;
+            telemetry.addData("Rotatepos",  "%.2f", robot.Rotate.getPosition());
+            telemetry.addData("ExtLpos",  "%.2f", robot.ExtL.getPosition());
+            telemetry.addData("ExtRpos",  "%.2f", robot.ExtR.getPosition());
+            telemetry.addData("Grabpos",  "%.2f", robot.Grab.getPosition());
+            telemetry.addData("Twistpos",  "%.2f", robot.Twist.getPosition());
+            telemetry.addData("Grip",robot.Grip.getPosition());
+            telemetry.update();
+            //telemetry.addData("Plane ", "%.2f",robot.Up.getPosition());
+            // Pace this loop so jaw action is reasonable speed.
+            sleep(50);
+        }
+    }
+}
