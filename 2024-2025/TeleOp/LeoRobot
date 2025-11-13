@@ -1,0 +1,388 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name = "Final", group = "Final")
+public class Final extends LinearOpMode {
+
+    HardwareMecanum robot = new HardwareMecanum();
+
+    private Servo topServo;
+    private final double FLAT_POS = 0.52;
+    private final double UP_POS = 0.45;
+    private final double DOWN_POS = 0.58;
+    private int servoState = 0;
+    private boolean lastXPressed = false;
+    private double topTargetPos = FLAT_POS;
+    boolean autoDriveMode = false;
+    boolean prevLeftStickButton = false;
+
+    private Servo handServo;
+    private Servo wristServo;
+
+    private boolean wristOpen = false;
+    private boolean lastRBState = false;
+    private double currentHandPosition = 1;
+    double targetHandPosition = currentHandPosition;
+
+    private Servo clipJoint;
+    private boolean isAtHalf = false;
+    private boolean lastBPressed = false;
+    private double clipTargetPos = 0.0148;
+
+    private Servo clawServo;
+    private boolean clawOpen = false;
+    private boolean lastLBState = false;
+    private boolean lastDpadUp = false;
+    private boolean ZurnUp = false;
+    private boolean BurnUp = false;
+    private boolean lastDpadStateRight = false;
+    private boolean lurnToggled = false;
+    private boolean lastDpadDown = false;
+    
+    //private Servo Turn;
+
+    private final double MOVE_SPEED = 0.0019;
+
+    private DcMotor leftSlideMotor;
+    private DcMotor rightSlideMotor;
+
+    private Servo Base;
+    boolean baseUp = false;
+    boolean baseDown = false;
+    boolean lastDpadRight = false;
+    boolean extendLeft = false;
+    
+
+    private Servo Extend;
+    boolean extendUp = false;
+  //  boolean lastDpadUp = false;
+
+    boolean lastDpadLeft = false;
+    boolean currentDpadState =false;
+    boolean lastDpadState = false;
+    private Servo Zurn;
+    private Servo Burn;
+    private Servo Lurn;
+    @Override
+    public void runOpMode() {
+
+        double speed = 0.0006;
+
+        // Hardware init
+        robot.init(hardwareMap);
+        
+Zurn = hardwareMap.get(Servo.class, "Zurn");
+Burn = hardwareMap.get(Servo.class, "Burn");
+Lurn = hardwareMap.get(Servo.class, "Lurn");
+
+
+        handServo = hardwareMap.get(Servo.class, "handServo");
+        wristServo = hardwareMap.get(Servo.class, "wristServo");
+
+        topServo = hardwareMap.get(Servo.class, "topServo");
+        clipJoint = hardwareMap.get(Servo.class, "clipJoint");
+
+        leftSlideMotor = hardwareMap.get(DcMotor.class, "leftSlideMotor");
+        rightSlideMotor = hardwareMap.get(DcMotor.class, "rightSlideMotor");
+
+        Base = hardwareMap.get(Servo.class, "Base");
+        Extend = hardwareMap.get(Servo.class, "BottomJoint");
+
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+        //Turn = hardwareMap.get(Servo.class, "Turn");
+
+        leftSlideMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightSlideMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightSlideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftSlideMotor.setDirection(DcMotor.Direction.REVERSE);
+        rightSlideMotor.setDirection(DcMotor.Direction.FORWARD);
+
+        handServo.setPosition(currentHandPosition);
+        wristServo.setPosition(0.5);
+        clawServo.setPosition(0.025);
+        //Turn.setPosition(0.0);
+        topServo.setPosition(0.5);
+        Base.setPosition(0.028);
+        Extend.setPosition(0.1);
+
+        telemetry.addData("Status", "Ready to run");
+        telemetry.update();
+        telemetry.addData("Say", "Ready to start");
+        telemetry.update();
+        waitForStart();
+
+        double leftlimit = leftSlideMotor.getCurrentPosition() + 30;
+        double rightlimit = rightSlideMotor.getCurrentPosition() + 30;
+
+        leftSlideMotor.setPower(0);
+        rightSlideMotor.setPower(0);
+
+        while (opModeIsActive()) {
+            boolean currentLBState = gamepad1.left_bumper;
+            boolean currentDpadRight = gamepad1.dpad_right;
+            boolean currentDpadUp = gamepad1.dpad_up;
+            boolean currentDpadDown = gamepad1.dpad_down;
+            boolean currentDpadLeft = gamepad1.dpad_left;
+            boolean gamepad2DpadUp = gamepad2.dpad_up;
+            boolean gamepad2DpadRight = gamepad2.dpad_right;
+            boolean gamepad2DpadDown = gamepad2.dpad_down;
+
+
+if (gamepad2DpadUp && !lastDpadState) {
+    ZurnUp = !ZurnUp;
+    Zurn.setPosition(ZurnUp ? 1 : 0);
+}
+lastDpadState = gamepad2DpadUp;
+
+if (gamepad2DpadRight && !lastDpadStateRight) {
+    BurnUp = !BurnUp;
+    Burn.setPosition(BurnUp ?0.18 : 0.4);
+}
+lastDpadStateRight = gamepad2DpadRight;
+
+if (gamepad2DpadDown && !lastDpadDown) {
+    lurnToggled = !lurnToggled; // flip the toggle
+    Lurn.setPosition(lurnToggled ? 0.4 : 0.53);
+    sleep(300);
+    
+}
+lastDpadDown = currentDpadDown;
+    if (gamepad1.left_bumper && !lastLBState) {
+        clawOpen = !clawOpen;
+        clawServo.setPosition(clawOpen ? 0.5 : 0.025); // adjust positions if needed
+    }
+    lastLBState = gamepad1.left_bumper;
+
+
+            lastLBState = currentLBState;
+
+            boolean currentRBState = gamepad1.right_bumper;
+            if (currentRBState && !lastRBState) {
+                wristOpen = !wristOpen;
+                wristServo.setPosition(wristOpen ? 1.0 : 0.0);
+            }
+            lastRBState = currentRBState;
+
+            if (gamepad1.a) {
+                targetHandPosition = Math.min(targetHandPosition + 0.02, 1.0);
+            } else if (gamepad1.y) {
+                targetHandPosition = Math.max(targetHandPosition - 0.02, 0.0);
+            }
+
+            double distance = targetHandPosition - currentHandPosition;
+            double speedFactor = Math.abs(distance) / 0.1;
+            speedFactor = Math.min(speedFactor, 1.0);
+            double rotateSpeed = 0.03 + (0.1 - 0.03) * speedFactor;
+
+            if (distance > 0) {
+                currentHandPosition += rotateSpeed;
+                if (currentHandPosition > targetHandPosition) currentHandPosition = targetHandPosition;
+            } else {
+                currentHandPosition -= rotateSpeed;
+                if (currentHandPosition < targetHandPosition) currentHandPosition = targetHandPosition;
+            }
+            handServo.setPosition(currentHandPosition);
+
+            double stickY = -gamepad1.right_stick_y;
+            double maxPower = (gamepad1.right_trigger > 0.5) ? 1.0 :
+                              (gamepad1.left_trigger > 0.5) ? 0.25 : 0.5;
+            double power = stickY * maxPower;
+            leftSlideMotor.setPower(power);
+            rightSlideMotor.setPower(power);
+
+            double x1 = gamepad2.left_stick_x;
+            double y1 = -gamepad2.left_stick_y;
+            double side = gamepad2.right_stick_x;
+
+            if (Math.abs(side) > 0.05) {
+                if (gamepad2.left_bumper) {
+                    robot.LeftFront.setPower(side * 0.2);
+                    robot.LeftRear.setPower(-side * 0.2);
+                    robot.RightFront.setPower(-side * 0.2);
+                    robot.RightRear.setPower(side * 0.2);
+                } else {
+                    robot.LeftFront.setPower(side * 0.8);
+                    robot.LeftRear.setPower(-side * 0.8);
+                    robot.RightFront.setPower(-side * 0.8);
+                    robot.RightRear.setPower(side * 0.8);
+                }
+            } else {
+                double y2 = x1 * 0.85 + y1;
+                double x2 = y1 - x1 * 0.85;
+                if (gamepad2.left_bumper) {
+                    robot.LeftFront.setPower(y2 * 0.2);
+                    robot.LeftRear.setPower(y2 * 0.2);
+                    robot.RightFront.setPower(x2 * 0.2);
+                    robot.RightRear.setPower(x2 * 0.2);
+                } else {
+                    robot.LeftFront.setPower(y2 * 0.8);
+                    robot.LeftRear.setPower(y2 * 0.8);
+                    robot.RightFront.setPower(x2 * 0.8);
+                    robot.RightRear.setPower(x2 * 0.8);
+                }
+            }
+
+            boolean xPressed = gamepad1.x;
+            if (xPressed && !lastXPressed) {
+                servoState = (servoState + 1) % 3;
+                switch (servoState) {
+                    case 0: topTargetPos = FLAT_POS; break;
+                    case 1: topTargetPos = UP_POS; break;
+                    case 2: topTargetPos = DOWN_POS; break;
+                }
+            }
+            lastXPressed = xPressed;
+
+            boolean bPressed = gamepad1.b;
+            if (bPressed && !lastBPressed) {
+                isAtHalf = !isAtHalf;
+                clipTargetPos = isAtHalf ? 0.36 : 0.012;
+            }
+            lastBPressed = bPressed;
+
+            double currentTop = topServo.getPosition();
+            if (Math.abs(currentTop - topTargetPos) > MOVE_SPEED) {
+                topServo.setPosition(currentTop + Math.copySign(MOVE_SPEED, topTargetPos - currentTop));
+            } else {
+                topServo.setPosition(topTargetPos);
+            }
+
+            double currentClip = clipJoint.getPosition();
+            if (Math.abs(currentClip - clipTargetPos) > MOVE_SPEED) {
+                clipJoint.setPosition(currentClip + Math.copySign(MOVE_SPEED, clipTargetPos - currentClip));
+            } else {
+                clipJoint.setPosition(clipTargetPos);
+            }
+            
+
+            if (currentDpadRight && !lastDpadRight && !prevLeftStickButton) {
+    baseUp = !baseUp;
+    Base.setPosition(baseUp ? 0.18 : 0.51);
+}
+lastDpadRight = currentDpadRight;
+
+if (currentDpadUp && !lastDpadUp && !prevLeftStickButton) {
+    extendUp = !extendUp; // BottomJoint
+    Extend.setPosition(extendUp ? 0.18 : 0.1);
+}
+lastDpadUp = currentDpadUp;
+
+if (currentDpadDown && !lastDpadDown && !prevLeftStickButton) {
+    baseDown = !baseDown;
+    Base.setPosition(baseDown ? 0.48 : 0.35);
+}
+lastDpadDown = currentDpadDown;
+
+if (currentDpadLeft && !lastDpadLeft && !prevLeftStickButton) {
+    extendLeft = !extendLeft;
+    Extend.setPosition(extendLeft ? 0.9 : 0.1);
+    sleep(300);
+}
+
+if (gamepad1.left_stick_button && prevLeftStickButton) {
+    autoDriveMode = !autoDriveMode;
+}
+prevLeftStickButton = gamepad1.left_stick_button;
+
+if (Math.abs(gamepad1.right_stick_x) > 0.05) {
+    if (gamepad1.left_bumper) {
+        robot.LeftFront.setPower(gamepad1.right_stick_x * 0.2);
+        robot.LeftRear.setPower(gamepad1.right_stick_x * -0.2);
+        robot.RightFront.setPower(gamepad1.right_stick_x * -0.2);
+        robot.RightRear.setPower(gamepad1.right_stick_x * 0.2);
+    } else {
+        robot.LeftFront.setPower(gamepad1.right_stick_x * 0.5);
+        robot.LeftRear.setPower(gamepad1.right_stick_x * -0.5);
+        robot.RightFront.setPower(gamepad1.right_stick_x * -0.5);
+        robot.RightRear.setPower(gamepad1.right_stick_x * 0.5);
+    }
+}
+
+if (autoDriveMode) {
+    if (gamepad1.dpad_up) {
+        if (gamepad1.left_bumper) {
+            robot.LeftFront.setPower(0.2);
+            robot.LeftRear.setPower(0.2);
+            robot.RightFront.setPower(0.2);
+            robot.RightRear.setPower(0.2);
+        } else {
+            robot.LeftFront.setPower(0.4);
+            robot.LeftRear.setPower(0.4);
+            robot.RightFront.setPower(0.4);
+            robot.RightRear.setPower(0.4);
+        }
+    }
+
+    if (gamepad1.dpad_right) {
+        if (gamepad1.left_bumper) {
+            robot.LeftFront.setPower(0.2);
+            robot.LeftRear.setPower(0.2);
+            robot.RightFront.setPower(-0.2);
+            robot.RightRear.setPower(-0.2);
+        } else {
+            robot.LeftFront.setPower(0.4);
+            robot.LeftRear.setPower(0.4);
+            robot.RightFront.setPower(-0.4);
+            robot.RightRear.setPower(-0.4);
+        }
+    }
+
+    if (gamepad1.dpad_down) {
+        if (gamepad1.left_bumper) {
+            robot.LeftFront.setPower(-0.2);
+            robot.LeftRear.setPower(-0.2);
+            robot.RightFront.setPower(-0.2);
+            robot.RightRear.setPower(-0.2);
+        } else {
+            robot.LeftFront.setPower(-0.4);
+            robot.LeftRear.setPower(-0.4);
+            robot.RightFront.setPower(-0.4);
+            robot.RightRear.setPower(-0.4);
+        }
+    }
+
+    if (gamepad1.dpad_left) {
+        if (gamepad1.left_bumper) {
+            robot.LeftFront.setPower(-0.2);
+            robot.LeftRear.setPower(-0.2);
+            robot.RightFront.setPower(0.2);
+            robot.RightRear.setPower(0.2);
+        } else {
+            robot.LeftFront.setPower(-0.4);
+            robot.LeftRear.setPower(-0.4);
+            robot.RightFront.setPower(0.4);
+            robot.RightRear.setPower(0.4);
+        }
+
+        robot.LeftFront.setPower(0);
+        robot.LeftRear.setPower(0);
+        robot.RightFront.setPower(0);
+        robot.RightRear.setPower(0);
+    }
+}
+
+telemetry.addData("Left Slide Pos", leftSlideMotor.getCurrentPosition());
+telemetry.addData("Right Slide Pos", rightSlideMotor.getCurrentPosition());
+telemetry.addData("Rotatepos", "%.2f", handServo.getPosition());
+telemetry.addData("Target Rotate", "%.2f", targetHandPosition);
+telemetry.addData("Wrist", wristOpen ? "Open" : "Closed");
+telemetry.addData("Top Servo State", servoState);
+telemetry.addData("Drive Mode", autoDriveMode ? "Drive" : "Claw");
+telemetry.update();
+
+        }
+    }
+}
+
+
+
+
+
+
+
+
