@@ -1,0 +1,134 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+@TeleOp (name = "Lift")
+public class Lift extends OpMode {
+    DcMotor Lift;
+    DcMotor LF;
+    DcMotor LR;
+    DcMotor RF;
+    DcMotor RR;
+    DcMotorEx Belt;
+    Servo Claw;
+    Servo Twist;
+    double side;
+    double y1;
+    double x1;
+    double y2;
+    double x2;
+    double Velocity = 2000;
+    private boolean clawOpen = false;
+    private boolean lastLBState = false;
+
+    int beltTargetPos = 0;  // NEW: Track target position
+
+    public void init() {
+        side = gamepad1.right_stick_x;
+        Lift = hardwareMap.get(DcMotor.class, "Lift");
+        LF = hardwareMap.get(DcMotor.class, "LF");
+        LR = hardwareMap.get(DcMotor.class, "LR");
+        RF = hardwareMap.get(DcMotor.class, "RF");
+        RR = hardwareMap.get(DcMotor.class, "RR");
+        Belt = hardwareMap.get(DcMotorEx.class, "Belt");
+        Claw = hardwareMap.get(Servo.class, "Claw");
+        Twist = hardwareMap.get(Servo.class, "Twist");
+
+        Belt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        beltTargetPos = 0;  
+
+        Claw.setPosition(0);
+        Twist.setPosition(0);
+    }
+
+    public void loop() {
+        side = gamepad1.right_stick_x;
+        boolean currentLBState = gamepad2.left_bumper;
+        double joystick = gamepad2.left_stick_y;  
+        double TargetVelocity = joystick * Velocity;
+
+        if(gamepad2.a) {
+            Lift.setPower(-0.75);
+        }
+        else if(gamepad2.y) {
+            Lift.setPower(0.75);
+        }
+        else{
+            Lift.setPower(0);
+        }
+        
+       
+        if (gamepad2.right_bumper) {
+            Lift.setPower(0);
+        }
+//Straffing
+        if (side > 0.05) {
+            if (gamepad1.left_bumper) {
+                LF.setPower(side * 0.2);
+                LR.setPower(side * -0.2);
+                RF.setPower(side * 0.2);
+                RR.setPower(side * -0.2);
+            } else {
+                LF.setPower(side * 0.8);
+                LR.setPower(side * -0.8);
+                RF.setPower(side * 0.8);
+                RR.setPower(side * -0.8);
+            }
+        } else {
+            y1 = -gamepad1.left_stick_y;
+            x1 = gamepad1.left_stick_x;
+            y2 = x1 * 0.85 + y1;
+            x2 = y1 - x1 * 0.85;
+//forward back left right
+            if(gamepad1.left_bumper) {
+                LF.setPower(y2 * 0.2);
+                LR.setPower(-y2 * 0.2);
+                RF.setPower(x2 * 0.2);
+                RR.setPower(x2 * 0.2);
+            } else {
+                LF.setPower(y2 * 0.8);
+                LR.setPower(-y2 * 0.8);
+                RF.setPower(x2 * 0.8);
+                RR.setPower(x2 * 0.8);
+            }
+        }
+
+
+        if (Math.abs(joystick) > 0.05) {
+            int delta = (int)(joystick); 
+            beltTargetPos += delta;
+
+            Belt.setTargetPosition(beltTargetPos);
+            Belt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Belt.setPower(0.9);  // movement power
+        } else {
+            Belt.setTargetPosition(beltTargetPos);
+            Belt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Belt.setPower(0.3);  // holding power
+        }
+
+        if (currentLBState && !lastLBState) {
+            clawOpen = !clawOpen;
+            Claw.setPosition(clawOpen ? 1 : 0);
+        }
+
+        lastLBState = currentLBState;
+
+        if(gamepad2.x){
+            Twist.setPosition(0.5);
+        }
+        else if(gamepad2.b){
+            Twist.setPosition(0);
+        }
+        }
+    }
+
+
+
+
+
