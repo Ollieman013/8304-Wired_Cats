@@ -1,0 +1,123 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+@TeleOp(name = "DualGamepad")
+
+public class DualGamepadControl extends OpMode {
+
+DcMotor LR;
+DcMotor LF;
+DcMotor RR;
+DcMotor RF;
+
+boolean autoDriveMode = false; // added toggle state
+boolean prevLeftStickButton = false; // to detect button press
+
+@Override
+public void init() {
+    LF = hardwareMap.get(DcMotor.class, "LF");
+    LR = hardwareMap.get(DcMotor.class, "LR");
+    RF = hardwareMap.get(DcMotor.class, "RF");
+    RR = hardwareMap.get(DcMotor.class, "RR");
+}
+
+@Override 
+public void loop() {
+
+    // Toggle logic added
+    if (gamepad1.left_stick_button && !prevLeftStickButton) {
+        autoDriveMode = !autoDriveMode;
+    }
+    prevLeftStickButton = gamepad1.left_stick_button;
+
+    if (Math.abs(gamepad1.right_stick_x) > 0.05) {
+        //strafing
+        if (gamepad1.left_bumper) {
+            LF.setPower(gamepad1.right_stick_x * 0.2);
+            LR.setPower(gamepad1.right_stick_x * -0.2);
+            RF.setPower(gamepad1.right_stick_x * 0.2);
+            RR.setPower(gamepad1.right_stick_x * -0.2);
+        }
+        else {
+            LF.setPower(gamepad1.right_stick_x * 0.5);
+            LR.setPower(gamepad1.right_stick_x * -0.5);
+            RF.setPower(gamepad1.right_stick_x * 0.5);
+            RR.setPower(gamepad1.right_stick_x * -0.5);
+        }
+    } 
+
+    if (autoDriveMode) { // only respond to D-pad if mode is active
+        if(gamepad1.dpad_up) {
+            if(gamepad1.left_bumper) {
+            LF.setPower(-0.2);
+            LR.setPower(-0.2);
+            RF.setPower(0.2);
+            RR.setPower(0.2);
+        }
+        else {
+            LF.setPower(-0.4);
+            LR.setPower(-0.4);
+            RF.setPower(0.4);
+            RR.setPower(0.4);
+        }
+        }
+        
+        if(gamepad1.dpad_right){
+            if(gamepad1.left_bumper) {
+            LF.setPower(-0.2);
+            LR.setPower(-0.2);
+            RF.setPower(-0.2);
+            RR.setPower(-0.2);
+        }
+        else {
+            LF.setPower(-0.4);
+            LR.setPower(-0.4);
+            RF.setPower(-0.4);
+            RR.setPower(-0.4);
+        }
+        }
+        if(gamepad1.dpad_down){
+            if(gamepad1.left_bumper){
+            LF.setPower(0.2);
+            LR.setPower(0.2);
+            RF.setPower(-0.2);
+            RR.setPower(-0.2);
+        }
+        else {
+            LF.setPower(0.4);
+            LR.setPower(0.4);
+            RF.setPower(-0.4);
+            RR.setPower(-0.4);
+        }
+        }
+        if(gamepad1.dpad_left){
+            if(gamepad1.left_bumper) {
+            LF.setPower(0.2);
+            LR.setPower(0.2);
+            RF.setPower(0.2);
+            RR.setPower(0.2);
+        }
+        else {
+            LF.setPower(0.4);
+            LR.setPower(0.4);
+            RF.setPower(0.4);
+            RR.setPower(0.4);
+        }
+        }
+    }
+            LF.setPower(0);
+            LR.setPower(0);
+            RF.setPower(0);
+            RR.setPower(0);
+   
+}          
+}
+
+
+
+
+
