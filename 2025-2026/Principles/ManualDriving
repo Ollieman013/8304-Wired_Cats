@@ -1,6 +1,22 @@
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+@TeleOp(name = "OneWeekRobot" )
+public class OneWeekRobot extends OpMode {
+   DcMotor LF;
+   DcMotor RF;
+   DcMotor RR;
+   DcMotor LR;
+
+ public void init() {
+       LF = hardwareMap.get(DcMotor.class, "LF");
+       RF = hardwareMap.get(DcMotor.class, "RF");
+       RR = hardwareMap.get(DcMotor.class, "RR");
+       LR = hardwareMap.get(DcMotor.class, "LR");
+
+}
+
+
 public void loop(){
 
        side = gamepad1.right_stick_x;
@@ -40,4 +56,5 @@ public void loop(){
 
 
        }
+}
 }
