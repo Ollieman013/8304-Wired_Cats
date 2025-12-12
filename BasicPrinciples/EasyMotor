@@ -1,0 +1,25 @@
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+
+@TeleOp(name = "EasyMotor" )
+public class EasyMotor extends OpMode {
+    DcMotor Motor1;
+
+    @Override
+    public void init(){
+        hardwareMap.get(DcMotor.class, "Motor1");
+    }
+    @Override
+    pubic void loop(){
+        if(gamepad1.y){
+            Motor1.setPower(0.8);
+        }
+        if(gamepad1.a){
+            Motor1.setPower(-0.8);
+        }
+    }
+}
